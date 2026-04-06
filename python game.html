@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Bouncer - Python If Statement</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- Modern CSS Variables --- */
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --color-if: #10b981; /* Emerald Green */
+            --color-else: #ef4444; /* Red */
+            --code-bg: #0b1120;
+            --keyword: #c678dd;
+            --variable: #e06c75;
+            --string: #98c379;
+            --operator: #56b6c2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Header & Score --- */
+        header {
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .score-correct { color: var(--color-if); text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
+        .score-wrong { color: var(--color-else); text-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+
+        /* --- Main Layout --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            gap: 30px;
+        }
+
+        /* --- Start Screen Note --- */
+        #start-screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.4s ease;
+        }
+
+        .note-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .note-card h2 { margin-bottom: 10px; font-size: 1.8rem; }
+        .note-card p { color: var(--text-muted); margin-bottom: 25px; font-size: 0.95rem; }
+
+        .btn-start {
+            background: var(--color-if);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px var(--color-if);
+        }
+
+        /* --- Code Editor Container --- */
+        .code-container {
+            font-family: 'Fira Code', monospace;
+            background-color: var(--code-bg);
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .code-line { 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            transition: all 0.3s ease;
+        }
+        
+        .indent { margin-left: 20px; }
+
+        .c-kw { color: var(--keyword); }
+        .c-var { color: var(--variable); }
+        .c-str { color: var(--string); }
+        .c-op { color: var(--operator); }
+
+        /* Code Highlights (Toggled by JS) */
+        .highlight-if {
+            background: rgba(16, 185, 129, 0.15);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+            border-left: 3px solid var(--color-if);
+        }
+        .highlight-else {
+            background: rgba(239, 68, 68, 0.15);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+            border-left: 3px solid var(--color-else);
+        }
+
+        .shake { animation: shakeError 0.4s ease-in-out; }
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        /* --- Visitor Card --- */
+        .visitor-area {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .visitor-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            padding: 20px 40px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transform: translateY(0);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .visitor-card.slide-out {
+            transform: translateX(100vw) rotate(10deg);
+            opacity: 0;
+        }
+
+        .visitor-card.slide-in {
+            animation: slideInLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideInLeft {
+            0% { transform: translateX(-100vw) rotate(-10deg); opacity: 0; }
+            100% { transform: translateX(0) rotate(0); opacity: 1; }
+        }
+
+        .visitor-icon { font-size: 3.5rem; display: block; margin-bottom: 5px; }
+        .visitor-age { font-size: 1.3rem; font-weight: 600; color: var(--text-main); }
+        .age-number { color: #38bdf8; font-family: 'Fira Code', monospace; }
+
+        /* --- Controls --- */
+        .controls {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:active { transform: scale(0.95); }
+        .btn span { font-size: 0.8rem; opacity: 0.8; font-weight: 400; }
+
+        .btn-deny { 
+            background: rgba(239, 68, 68, 0.1); 
+            border: 1px solid var(--color-else);
+            color: var(--color-else);
+        }
+        .btn-deny:hover, .btn-deny.active { 
+            background: var(--color-else); 
+            color: white;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-allow { 
+            background: rgba(16, 185, 129, 0.1); 
+            border: 1px solid var(--color-if);
+            color: var(--color-if);
+        }
+        .btn-allow:hover, .btn-allow.active { 
+            background: var(--color-if); 
+            color: white;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        /* --- Footer --- */
+        footer {
+            padding: 15px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 500px) {
+            .code-container { font-size: 0.85rem; padding: 15px; }
+            .btn { padding: 12px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <div class="note-card">
+            <h2>You are the compiler! ⚙️</h2>
+            <p>Read the Python code, check the visitor's age, and execute the correct statement.</p>
+            <div class="code-container" style="margin-bottom: 25px; text-align: left;">
+                <div class="code-line"><span class="c-kw">if</span> <span class="c-var">age</span> <span class="c-op">&gt;=</span> <span class="c-str">18</span><span class="c-op">:</span></div>
+                <div class="code-line indent"><span class="c-kw">print</span><span class="c-op">(</span><span class="c-str">"Welcome! ✅"</span><span class="c-op">)</span></div>
+                <div class="code-line"><span class="c-kw">else</span><span class="c-op">:</span></div>
+                <div class="code-line indent"><span class="c-kw">print</span><span class="c-op">(</span><span class="c-str">"Access Denied! ❌"</span><span class="c-op">)</span></div>
+            </div>
+            <button class="btn-start" onclick="startGame()">Start Executing</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="score-board">
+            <div class="score-correct">Correct: <span id="score-correct">0</span></div>
+            <div class="score-wrong">Wrong: <span id="score-wrong">0</span></div>
+        </div>
+    </header>
+
+    <main>
+        <div class="code-container" id="game-code">
+            <div class="code-line"><span class="c-kw">if</span> <span class="c-var">age</span> <span class="c-op">&gt;=</span> <span class="c-str">18</span><span class="c-op">:</span></div>
+            <div class="code-line indent" id="line-if"><span class="c-kw">print</span><span class="c-op">(</span><span class="c-str">"Welcome! ✅"</span><span class="c-op">)</span></div>
+            <div class="code-line"><span class="c-kw">else</span><span class="c-op">:</span></div>
+            <div class="code-line indent" id="line-else"><span class="c-kw">print</span><span class="c-op">(</span><span class="c-str">"Access Denied! ❌"</span><span class="c-op">)</span></div>
+        </div>
+
+        <div class="visitor-area">
+            <div class="visitor-card slide-in" id="visitor-card">
+                <span class="visitor-icon">👤</span>
+                <div class="visitor-age">Age: <span class="age-number" id="age-value">??</span></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-deny" id="btn-deny" onclick="makeDecision('else')">
+                Deny
+                <span>(Execute Else)</span>
+            </button>
+            <button class="btn btn-allow" id="btn-allow" onclick="makeDecision('if')">
+                Allow
+                <span>(Execute If)</span>
+            </button>
+        </div>
+    </main>
+
+    <footer>
+        Developed by Mohamed Islam
+    </footer>
+
+    <script>
+        let currentAge = 0;
+        let scores = { correct: 0, wrong: 0 };
+        let isProcessing = false;
+
+        const ui = {
+            startScreen: document.getElementById('start-screen'),
+            visitorCard: document.getElementById('visitor-card'),
+            ageValue: document.getElementById('age-value'),
+            scoreCorrect: document.getElementById('score-correct'),
+            scoreWrong: document.getElementById('score-wrong'),
+            codeContainer: document.getElementById('game-code'),
+            lineIf: document.getElementById('line-if'),
+            lineElse: document.getElementById('line-else')
+        };
+
+        function startGame() {
+            ui.startScreen.style.opacity = '0';
+            setTimeout(() => {
+                ui.startScreen.style.display = 'none';
+                spawnVisitor();
+            }, 400);
+        }
+
+        function spawnVisitor() {
+            // Remove highlight classes
+            ui.lineIf.classList.remove('highlight-if');
+            ui.lineElse.classList.remove('highlight-else');
+            
+            currentAge = Math.floor(Math.random() * 21) + 10; // Random age 10-30
+            ui.ageValue.innerText = currentAge;
+            
+            ui.visitorCard.className = 'visitor-card slide-in';
+            isProcessing = false;
+        }
+
+        function makeDecision(playerChoice) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const conditionMet = currentAge >= 18;
+            const correctChoice = conditionMet ? 'if' : 'else';
+
+            if (playerChoice === correctChoice) {
+                // Correct Decision
+                scores.correct++;
+                ui.scoreCorrect.innerText = scores.correct;
+                
+                // Highlight the code that executes
+                if (conditionMet) {
+                    ui.lineIf.classList.add('highlight-if');
+                } else {
+                    ui.lineElse.classList.add('highlight-else');
+                }
+
+                // Animate out and spawn next
+                setTimeout(() => {
+                    ui.visitorCard.className = 'visitor-card slide-out';
+                    setTimeout(spawnVisitor, 400);
+                }, 800);
+
+            } else {
+                // Wrong Decision
+                scores.wrong++;
+                ui.scoreWrong.innerText = scores.wrong;
+                
+                // Shake code to indicate error
+                ui.codeContainer.classList.add('shake');
+                setTimeout(() => ui.codeContainer.classList.remove('shake'), 400);
+                
+                isProcessing = false; // Let them try again
+            }
+        }
+    </script>
+</body>
+</html>
